@@ -8,6 +8,8 @@ kubectl config use-context weatherwatch-web
 
 dapr init -k --dev
 
+kubectl delete service dapr-dashboard -n dapr-system
+
 cat <<EOF | kubectl apply -n dapr-system -f -
 apiVersion: v1
 kind: Service

@@ -52,7 +52,7 @@ hosted_zone_id=$(aws route53 list-hosted-zones --query HostedZones[2].Id --outpu
 ingress=$(kubectl get svc $svc -n $dapr_ns -o json | jq -r .status.loadBalancer.ingress[].hostname)
 
 change_batch_filename=change-batch-$RANDOM
-cat <<EOF | tee $change_batch_filename.json
+cat <<EOF | tee ~/$change_batch_filename.json
 {
     "Comment": "Update record.",
     "Changes": [
@@ -76,9 +76,9 @@ echo
 
 aws route53 change-resource-record-sets \
     --hosted-zone-id $hosted_zone_id \
-    --change-batch file:///$change_batch_filename.json
+    --change-batch file:///$HOME/$change_batch_filename.json
 
-rm $change_batch_filename.json
+rm ~/$change_batch_filename.json
 echo
 
 dapr dashboard -k

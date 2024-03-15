@@ -48,4 +48,3 @@ spec:
       port: 15672
       targetPort: 15672
 EOF
-

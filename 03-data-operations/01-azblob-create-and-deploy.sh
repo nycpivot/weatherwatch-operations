@@ -5,6 +5,8 @@ storage_account=weatherwatch$RANDOM
 container_name=extreme-temps
 resource_group=weatherwatch
 
+echo $storage_account > ~/weatherwatch-dapr-ops/az-storage-account.txt
+
 az storage account create --name $storage_account --resource-group $resource_group
 
 az storage container create --name $container_name --account-name $storage_account

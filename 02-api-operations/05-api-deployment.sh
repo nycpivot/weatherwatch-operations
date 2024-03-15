@@ -1,62 +1,73 @@
 #!/bin/bash
 
-web=weatherwatch-web
-dns=weatherwatch.live
+api=weatherwatch-api
+dns=api.weatherwatch.live
 
 image_registry_url=$(az keyvault secret show --name image-registry-url --subscription thejameshome --vault-name cloud-operations-vault --query value --output tsv)
 image_registry_username=$(az keyvault secret show --name image-registry-username --subscription thejameshome --vault-name cloud-operations-vault --query value --output tsv)
 image_registry_password=$(az keyvault secret show --name image-registry-password --subscription thejameshome --vault-name cloud-operations-vault --query value --output tsv)
 
-weather_api_url=http://api.weatherwatch.live
+weather_bit_api_url=$(az keyvault secret show --name weather-bit-api-url --subscription thejameshome --vault-name cloud-operations-vault --query value --output tsv)
+weather_bit_api_key=$(az keyvault secret show --name weather-bit-api-key --subscription thejameshome --vault-name cloud-operations-vault --query value --output tsv)
+
+weather_data_api=http://data.weatherwatch.live
 
 cd ~
 
-#docker login $image_registry_url -u $image_registry_username -p $image_registry_password
+kubectl config use-context $api
 
-kubectl config use-context $web
+kubectl delete secret $api-secret --ignore-not-found
 
-kubectl delete secret $web-secret --ignore-not-found
-
-kubectl create secret docker-registry $web-secret \
+kubectl create secret docker-registry $api-secret \
 	--docker-server=$image_registry_url \
 	--docker-username=$image_registry_username \
 	--docker-password=$image_registry_password
 
-cat <<EOF | tee $web-deployment.yaml
+cat <<EOF | tee $api-deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: $web-deployment
+  name: $api-deployment
   labels:
-    app: $web
+    app: $api
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: $web
+      app: $api
   template:
     metadata:
       labels:
-        app: $web
+        app: $api
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "$api"
+        dapr.io/app-port: "8080"
+        dapr.io/log-level: "debug"
+        dapr.io/enable-api-logging: "true"
     spec:
       containers:
-      - name: $web
-        image: weatherwatch.azurecr.io/$web
+      - name: $api
+        image: weatherwatch.azurecr.io/$api
         env:
-        - name: WEATHER_API
-          value: $weather_api_url 
+        - name: WEATHER_DATA_API_URL
+          value: $weather_data_api
+        - name: WEATHER_BIT_API_URL
+          value: $weather_bit_api_url
+        - name: WEATHER_BIT_API_KEY
+          value: $weather_bit_api_key 
         ports:
         - containerPort: 8080
       imagePullSecrets:
-      - name: $web-secret
+      - name: $api-secret
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: $web
+  name: $api
 spec:
   selector:
-    app: $web
+    app: $api
   ports:
     - protocol: TCP
       port: 80
@@ -64,21 +75,19 @@ spec:
   type: LoadBalancer
 EOF
 
-kubectl delete -f $web-deployment.yaml --ignore-not-found
+kubectl delete -f $api-deployment.yaml --ignore-not-found
 
-kubectl apply -f $web-deployment.yaml
+kubectl apply -f $api-deployment.yaml
 
-rm $web-deployment.yaml
+rm $api-deployment.yaml
 
 sleep 20
 
 # dns
 hosted_zone_id=$(aws route53 list-hosted-zones --query HostedZones[2].Id --output text | awk -F '/' '{print $3}')
-ingress=$(kubectl get svc $web -o json | jq -r .status.loadBalancer.ingress[].hostname)
+ingress=$(kubectl get svc $api -o json | jq -r .status.loadBalancer.ingress[].ip)
 
-nslookup $ingress
-
-read -p "Enter IP Address: " ipaddress
+ipaddress=$ingress
 
 change_batch_filename=change-batch-$RANDOM
 cat <<EOF | tee $change_batch_filename.json
@@ -103,8 +112,9 @@ cat <<EOF | tee $change_batch_filename.json
 EOF
 echo
 
-echo $change_batch_filename.json
-aws route53 change-resource-record-sets --hosted-zone-id $hosted_zone_id --change-batch file:///$HOME/$change_batch_filename.json
+aws route53 change-resource-record-sets \
+  --hosted-zone-id $hosted_zone_id \
+  --change-batch file:///$HOME/$change_batch_filename.json
 
 rm $change_batch_filename.json
 echo

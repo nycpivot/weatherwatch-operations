@@ -9,10 +9,6 @@ cluster_role_arn=arn:aws:iam::$AWS_ACCOUNT_ID:role/eks-cluster-role
 nodegroup_role_arn=arn:aws:iam::$AWS_ACCOUNT_ID:role/eks-nodegroup-role
 cluster_arn=arn:aws:eks:${AWS_REGION_CODE}:$AWS_ACCOUNT_ID:cluster
 
-kubectl config delete-cluster arn:aws:eks:$AWS_REGION_CODE:$AWS_ACCOUNT_ID:cluster/weatherwatch-web
-kubectl config delete-user arn:aws:eks:$AWS_REGION_CODE:$AWS_ACCOUNT_ID:cluster/weatherwatch-web
-kubectl config delete-context $weatherwatch_web_cluster
-
 vpc_id=$(aws ec2 describe-vpcs --query "Vpcs[?Tags[?Value=='$vpc_name']].VpcId" --output text)
 subnetIds=$(aws ec2 describe-subnets --query "Subnets[?VpcId=='$vpc_id'].SubnetId" --output text)
 
@@ -43,6 +39,10 @@ aws eks create-nodegroup \
 	--node-role $nodegroup_role_arn \
 	--kubernetes-version 1.28 \
 	--no-cli-pager
+
+aws eks wait nodegroup-active \
+	--cluster-name $weatherwatch_web_cluster \
+	--nodegroup-name ${weatherwatch_web_cluster}-node-group
 
 aws eks update-kubeconfig --name ${weatherwatch_web_cluster} --region ${AWS_REGION_CODE}
 

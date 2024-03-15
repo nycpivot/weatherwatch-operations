@@ -2,10 +2,6 @@ resource_group=weatherwatch
 aks_region_code=eastus
 weatherwatch_api_cluster=weatherwatch-api
 
-kubectl config delete-cluster $weatherwatch_api_cluster
-kubectl config delete-user clusterUser_weatherwatch_$weatherwatch_api_cluster
-kubectl config delete-context $weatherwatch_api_cluster
-
 az group create --name ${resource_group} --location ${aks_region_code}
 
 az aks create --name ${weatherwatch_api_cluster} --resource-group ${resource_group} \

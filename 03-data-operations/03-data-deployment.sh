@@ -1,73 +1,62 @@
 #!/bin/bash
 
-api=weatherwatch-api
-dns=api.weatherwatch.live
+data=weatherwatch-data
+dns=data.weatherwatch.live
 
+app_name=weatherwatch-data
 image_registry_url=$(az keyvault secret show --name image-registry-url --subscription thejameshome --vault-name cloud-operations-vault --query value --output tsv)
 image_registry_username=$(az keyvault secret show --name image-registry-username --subscription thejameshome --vault-name cloud-operations-vault --query value --output tsv)
 image_registry_password=$(az keyvault secret show --name image-registry-password --subscription thejameshome --vault-name cloud-operations-vault --query value --output tsv)
 
-weather_bit_api_url=$(az keyvault secret show --name weather-bit-api-url --subscription thejameshome --vault-name cloud-operations-vault --query value --output tsv)
-weather_bit_api_key=$(az keyvault secret show --name weather-bit-api-key --subscription thejameshome --vault-name cloud-operations-vault --query value --output tsv)
-
-weather_data_api=http://data.weatherwatch.live
-
 cd ~
 
-kubectl config use-context $api
+kubectl config use-context weatherwatch-api
 
-kubectl delete secret $api-secret --ignore-not-found
+kubectl delete secret weatherwatch-api-secret --ignore-not-found
 
-kubectl create secret docker-registry $api-secret \
+kubectl create secret docker-registry weatherwatch-api-secret \
 	--docker-server=$image_registry_url \
 	--docker-username=$image_registry_username \
 	--docker-password=$image_registry_password
 
-cat <<EOF | tee $api-deployment.yaml
+cat <<EOF | tee $data-deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: $api-deployment
+  name: $data-deployment
   labels:
-    app: $api
+    app: $data
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: $api
+      app: $data
   template:
     metadata:
       labels:
-        app: $api
+        app: $data
       annotations:
         dapr.io/enabled: "true"
-        dapr.io/app-id: "$api"
+        dapr.io/app-id: "$data"
         dapr.io/app-port: "8080"
         dapr.io/log-level: "debug"
         dapr.io/enable-api-logging: "true"
     spec:
       containers:
-      - name: $api
-        image: weatherwatch.azurecr.io/$api
-        env:
-        - name: WEATHER_DATA_API_URL
-          value: $weather_data_api
-        - name: WEATHER_BIT_API_URL
-          value: $weather_bit_api_url
-        - name: WEATHER_BIT_API_KEY
-          value: $weather_bit_api_key 
+      - name: $data
+        image: weatherwatch.azurecr.io/$data
         ports:
         - containerPort: 8080
       imagePullSecrets:
-      - name: $api-secret
+      - name: weatherwatch-api-secret
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: $api
+  name: $data
 spec:
   selector:
-    app: $api
+    app: $data
   ports:
     - protocol: TCP
       port: 80
@@ -75,17 +64,17 @@ spec:
   type: LoadBalancer
 EOF
 
-kubectl delete -f $api-deployment.yaml --ignore-not-found
+kubectl delete -f $data-deployment.yaml --ignore-not-found
 
-kubectl apply -f $api-deployment.yaml
+kubectl apply -f $data-deployment.yaml
 
-rm $api-deployment.yaml
+rm $data-deployment.yaml
 
 sleep 20
 
 # dns
 hosted_zone_id=$(aws route53 list-hosted-zones --query HostedZones[2].Id --output text | awk -F '/' '{print $3}')
-ingress=$(kubectl get svc $api -o json | jq -r .status.loadBalancer.ingress[].ip)
+ingress=$(kubectl get svc $data -o json | jq -r .status.loadBalancer.ingress[].ip)
 
 ipaddress=$ingress
 
@@ -112,8 +101,9 @@ cat <<EOF | tee $change_batch_filename.json
 EOF
 echo
 
-echo $change_batch_filename.json
-aws route53 change-resource-record-sets --hosted-zone-id $hosted_zone_id --change-batch file:///$HOME/$change_batch_filename.json
+aws route53 change-resource-record-sets \
+  --hosted-zone-id $hosted_zone_id \
+  --change-batch file:///$HOME/$change_batch_filename.json
 
 rm $change_batch_filename.json
 echo

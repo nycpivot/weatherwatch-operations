@@ -70,24 +70,23 @@ kubectl apply -f $web-deployment.yaml
 
 rm $web-deployment.yaml
 
-ctr=60
-while [ $ctr -gt 0 ]
-do
-echo "Allowing DNS to propagate: ${ctr} seconds..."
-sleep 1 # give 15 minutes for all clusters to be created
-ctr=`expr $ctr - 1`
-done
-
 # dns
 hosted_zone_id=$(aws route53 list-hosted-zones --query HostedZones[2].Id --output text | awk -F '/' '{print $3}')
 ingress=$(kubectl get svc $web -o json | jq -r .status.loadBalancer.ingress[].hostname)
 
-nslookup $ingress
+echo
+echo "Waiting for DNS propagation..."
+echo
 
-read -p "Enter IP Address: " ipaddress
+ipaddress=''
+while [[ $ipaddress == '' ]]
+do
+ipaddress=$(dig +short $ingress | head -n 1)
+sleep 5
+done
 
 change_batch_filename=change-batch-$RANDOM
-cat <<EOF | tee $change_batch_filename.json
+cat <<EOF | tee ~/$change_batch_filename.json
 {
     "Comment": "Update record.",
     "Changes": [
@@ -109,12 +108,11 @@ cat <<EOF | tee $change_batch_filename.json
 EOF
 echo
 
-echo $change_batch_filename.json
 aws route53 change-resource-record-sets \
   --hosted-zone-id $hosted_zone_id \
   --change-batch file:///$HOME/$change_batch_filename.json
 
-rm $change_batch_filename.json
+rm ~/$change_batch_filename.json
 echo
 
 kubectl get pods

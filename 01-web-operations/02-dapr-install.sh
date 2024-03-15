@@ -45,14 +45,6 @@ spec:
   type: LoadBalancer
 EOF
 
-ctr=60
-while [ $ctr -gt 0 ]
-do
-echo "Allowing DNS to propagate: ${ctr} seconds..."
-sleep 1 # give 15 minutes for all clusters to be created
-ctr=`expr $ctr - 1`
-done
-
 # dns
 hosted_zone_id=$(aws route53 list-hosted-zones --query HostedZones[2].Id --output text | awk -F '/' '{print $3}')
 ingress=$(kubectl get svc $svc -n $dapr_ns -o json | jq -r .status.loadBalancer.ingress[].hostname)

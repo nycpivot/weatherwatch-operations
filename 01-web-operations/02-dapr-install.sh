@@ -81,4 +81,4 @@ aws route53 change-resource-record-sets \
 rm ~/$change_batch_filename.json
 echo
 
-dapr dashboard -k
+# dapr dashboard -k

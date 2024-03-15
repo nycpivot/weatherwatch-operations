@@ -33,7 +33,7 @@ aws eks create-nodegroup \
 	--cluster-name $weatherwatch_web_cluster \
 	--nodegroup-name "${weatherwatch_web_cluster}-node-group" \
 	--disk-size 50 \
-	--scaling-config minSize=1,maxSize=2,desiredSize=1 \
+	--scaling-config minSize=1,maxSize=3,desiredSize=3 \
 	--subnets "$subnetId3" "$subnetId6" \
 	--instance-types t3.medium \
 	--node-role $nodegroup_role_arn \

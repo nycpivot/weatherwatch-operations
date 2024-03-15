@@ -45,12 +45,33 @@ spec:
   type: LoadBalancer
 EOF
 
+echo
+ctr=20
+while [ $ctr -gt 0 ]
+do
+echo "Waiting ${ctr} seconds for service..."
+sleep 5 # give 15 minutes for all clusters to be created
+ctr=`expr $ctr - 5`
+done
+
 # dns
 hosted_zone_id=$(aws route53 list-hosted-zones --query HostedZones[2].Id --output text | awk -F '/' '{print $3}')
 ingress=$(kubectl get svc $svc -n $dapr_ns -o json | jq -r .status.loadBalancer.ingress[].hostname)
 
+echo
+echo "Waiting for DNS propagation..."
+echo
+
+ipaddress=''
+while [[ $ipaddress == '' ]]
+do
+ipaddress=$(dig +short $ingress | head -n 1)
+sleep 5
+done
+
+
 change_batch_filename=change-batch-$RANDOM
-cat <<EOF | tee ~/$change_batch_filename.json
+cat <<EOF | tee ~/tmp/$change_batch_filename.json
 {
     "Comment": "Update record.",
     "Changes": [
@@ -74,9 +95,9 @@ echo
 
 aws route53 change-resource-record-sets \
     --hosted-zone-id $hosted_zone_id \
-    --change-batch file:///$HOME/$change_batch_filename.json
+    --change-batch file:///$HOME/tmp/$change_batch_filename.json
 
-rm ~/$change_batch_filename.json
+rm ~/tmp/$change_batch_filename.json
 echo
 
 # dapr dashboard -k

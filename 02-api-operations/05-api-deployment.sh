@@ -90,7 +90,7 @@ ingress=$(kubectl get svc $api -o json | jq -r .status.loadBalancer.ingress[].ip
 ipaddress=$ingress
 
 change_batch_filename=change-batch-$RANDOM
-cat <<EOF | tee $change_batch_filename.json
+cat <<EOF | tee ~/tmp/$change_batch_filename.json
 {
     "Comment": "Update record.",
     "Changes": [
@@ -114,9 +114,9 @@ echo
 
 aws route53 change-resource-record-sets \
   --hosted-zone-id $hosted_zone_id \
-  --change-batch file:///$HOME/$change_batch_filename.json
+  --change-batch file:///$HOME/tmp/$change_batch_filename.json
 
-rm $change_batch_filename.json
+rm ~/tmp/$change_batch_filename.json
 echo
 
 kubectl get pods

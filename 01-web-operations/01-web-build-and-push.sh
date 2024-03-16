@@ -10,7 +10,7 @@ cd ~
 
 rm -rf $web
 
-git clone https://github.com/nycpivot/$web
+git clone https://github.com/nycpivot/$web -b dapr
 
 cd $web
 

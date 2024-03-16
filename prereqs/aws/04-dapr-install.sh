@@ -59,7 +59,7 @@ hosted_zone_id=$(aws route53 list-hosted-zones --query HostedZones[2].Id --outpu
 ingress=$(kubectl get svc $svc -n $dapr_ns -o json | jq -r .status.loadBalancer.ingress[].hostname)
 
 echo
-echo "Waiting for DNS propagation..."
+echo "Waiting for DNS to propagate..."
 echo
 
 ipaddress=''

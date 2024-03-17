@@ -40,7 +40,7 @@ spec:
         app: $web
       annotations:
         dapr.io/enabled: "true"
-        dapr.io/app-id: "$api"
+        dapr.io/app-id: "$web"
         dapr.io/app-port: "8080"
         dapr.io/log-level: "debug"
         dapr.io/enable-api-logging: "true"

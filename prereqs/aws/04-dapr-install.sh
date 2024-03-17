@@ -69,7 +69,6 @@ ipaddress=$(dig +short $ingress | head -n 1)
 sleep 5
 done
 
-
 change_batch_filename=change-batch-$RANDOM
 cat <<EOF | tee ~/tmp/$change_batch_filename.json
 {

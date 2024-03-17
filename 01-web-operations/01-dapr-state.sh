@@ -11,10 +11,10 @@ spec:
   version: v1
   metadata:
   - name: redisHost
-    value: redis-master.default.svc.cluster.local:6379
+    value: dapr-dev-redis-master.default.svc.cluster.local:6379
   - name: redisPassword
     secretKeyRef:
-      name: redis
+      name: dapr-dev-redis #redis
       key: redis-password
   # uncomment below for connecting to redis cache instances over TLS (ex - Azure Redis Cache)
   # - name: enableTLS

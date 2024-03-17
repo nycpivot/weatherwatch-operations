@@ -38,6 +38,12 @@ spec:
     metadata:
       labels:
         app: $web
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "$api"
+        dapr.io/app-port: "8080"
+        dapr.io/log-level: "debug"
+        dapr.io/enable-api-logging: "true"
     spec:
       containers:
       - name: $web

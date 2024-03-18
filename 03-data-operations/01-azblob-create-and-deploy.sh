@@ -3,13 +3,14 @@
 cluster_name=weatherwatch-app
 container_name=extreme-temps
 resource_group=weatherwatch
+ns=data
 
 storage_account=$(cat ~/tmp/az-storage-account.txt)
 account_key=$(cat ~/tmp/az-storage-account-key.txt)
 
 kubectl config use-context $cluster_name
 
-cat <<EOF | kubectl apply -n data -f -
+cat <<EOF | kubectl apply -n $ns -f -
 apiVersion: dapr.io/v1alpha1
 kind: Component
 metadata:

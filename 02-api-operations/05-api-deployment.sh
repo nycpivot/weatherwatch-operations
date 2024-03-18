@@ -2,6 +2,7 @@
 
 api=weatherwatch-api
 dns=api.weatherwatch.live
+ns=api
 
 image_registry_url=$(az keyvault secret show --name image-registry-url --subscription thejameshome --vault-name cloud-operations-vault --query value --output tsv)
 image_registry_username=$(az keyvault secret show --name image-registry-username --subscription thejameshome --vault-name cloud-operations-vault --query value --output tsv)
@@ -16,18 +17,19 @@ cd ~
 
 kubectl config use-context $api
 
-kubectl delete secret $api-secret --ignore-not-found
+kubectl delete secret $api-secret -n $ns --ignore-not-found
 
-kubectl create secret docker-registry $api-secret \
+kubectl create secret docker-registry -n $ns $api-secret \
 	--docker-server=$image_registry_url \
 	--docker-username=$image_registry_username \
 	--docker-password=$image_registry_password
 
-cat <<EOF | tee $api-deployment.yaml
+cat <<EOF | tee ~/tmp/$api-deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: $api-deployment
+  namespace: $ns
   labels:
     app: $api
 spec:
@@ -65,6 +67,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: $api
+  namespace: $ns
 spec:
   selector:
     app: $api
@@ -75,17 +78,24 @@ spec:
   type: LoadBalancer
 EOF
 
-kubectl delete -f $api-deployment.yaml --ignore-not-found
+kubectl delete -f ~/tmp/$api-deployment.yaml --ignore-not-found
 
-kubectl apply -f $api-deployment.yaml
+kubectl apply -f ~/tmp/$api-deployment.yaml
 
-rm $api-deployment.yaml
+rm ~/tmp/$api-deployment.yaml
 
-sleep 20
+echo
+ctr=20
+while [ $ctr -gt 0 ]
+do
+echo "Waiting ${ctr} seconds for service..."
+sleep 5 # give 15 minutes for all clusters to be created
+ctr=`expr $ctr - 5`
+done
 
 # dns
 hosted_zone_id=$(aws route53 list-hosted-zones --query HostedZones[2].Id --output text | awk -F '/' '{print $3}')
-ingress=$(kubectl get svc $api -o json | jq -r .status.loadBalancer.ingress[].ip)
+ingress=$(kubectl get svc $api -n $ns -o json | jq -r .status.loadBalancer.ingress[].ip)
 
 ipaddress=$ingress
 
@@ -119,8 +129,8 @@ aws route53 change-resource-record-sets \
 rm ~/tmp/$change_batch_filename.json
 echo
 
-kubectl get pods
+kubectl get pods -n $ns
 echo
 
-kubectl get services
+kubectl get services -n $ns
 echo

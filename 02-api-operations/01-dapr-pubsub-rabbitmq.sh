@@ -1,10 +1,11 @@
 #!/bin/bash
 
 cluster_name=weatherwatch-api
+ns=api
 
 kubectl config use-context $cluster_name
 
-cat <<EOF | kubectl apply -f -
+cat <<EOF | kubectl apply -n $ns -f -
 apiVersion: v1
 kind: Service
 kind: Component

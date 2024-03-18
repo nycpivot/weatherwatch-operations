@@ -27,6 +27,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: $data-deployment
+  namespace: data
   labels:
     app: $data
 spec:
@@ -51,7 +52,7 @@ spec:
         ports:
         - containerPort: 8080
       imagePullSecrets:
-      - name: weatherwatch-api-secret
+      - name: $registry
 ---
 apiVersion: v1
 kind: Service
@@ -67,9 +68,9 @@ spec:
   type: LoadBalancer
 EOF
 
-kubectl delete -f ~/tmp/$data-deployment.yaml -n data --ignore-not-found
+kubectl delete -f ~/tmp/$data-deployment.yaml --ignore-not-found
 
-kubectl apply -f ~/tmp/$data-deployment.yaml -n data
+kubectl apply -f ~/tmp/$data-deployment.yaml
 
 rm ~/tmp/$data-deployment.yaml
 
@@ -118,8 +119,8 @@ aws route53 change-resource-record-sets \
 rm ~/tmp/$change_batch_filename.json
 echo
 
-kubectl get pods
+kubectl get pods -n $data
 echo
 
-kubectl get services
+kubectl get services -n $data
 echo

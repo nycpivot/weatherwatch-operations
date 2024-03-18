@@ -19,4 +19,4 @@ spec:
     value: "$connectionString"
 EOF
 
-kubectl get components
+kubectl get components -n $ns

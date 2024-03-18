@@ -1,17 +1,11 @@
 #!/bin/bash
 
-cluster_name=weatherwatch-api
-storage_account=weatherwatch$RANDOM
+cluster_name=weatherwatch-data
 container_name=extreme-temps
 resource_group=weatherwatch
 
-echo $storage_account > ~/tmp/az-storage-account.txt
-
-az storage account create --name $storage_account --resource-group $resource_group
-
-az storage container create --name $container_name --account-name $storage_account
-
-account_key=$(az storage account keys list --account-name $storage_account | jq -r .[0].value)
+storage_account=$(cat ~/tmp/az-storage-account.txt)
+account_key=$(cat ~/tmp/az-storage-account-key.txt)
 
 kubectl config use-context $cluster_name
 

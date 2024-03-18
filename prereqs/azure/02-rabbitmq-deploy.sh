@@ -1,6 +1,8 @@
 #!/bin/bash
 
-kubectl config use-context weatherwatch-api
+cluster_name=weatherwatch-app
+
+kubectl config use-context $cluster_name
 
 kubectl delete service rabbitmq --ignore-not-found
 kubectl delete pod rabbitmq --ignore-not-found

@@ -4,7 +4,9 @@ dns=dapr.api.weatherwatch.live
 svc=dapr-dashboard
 dapr_ns=dapr-system
 
-kubectl config use-context weatherwatch-api
+cluster_name=weatherwatch-app
+
+kubectl config use-context $cluster_name
 
 dapr init -k --dev
 

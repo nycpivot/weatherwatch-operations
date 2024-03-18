@@ -3,23 +3,26 @@
 data=weatherwatch-data
 dns=data.weatherwatch.live
 
+cluster_name=weatherwatch-app
 app_name=weatherwatch-data
+registry=weatherwatch-registry-secret
+
 image_registry_url=$(az keyvault secret show --name image-registry-url --subscription thejameshome --vault-name cloud-operations-vault --query value --output tsv)
 image_registry_username=$(az keyvault secret show --name image-registry-username --subscription thejameshome --vault-name cloud-operations-vault --query value --output tsv)
 image_registry_password=$(az keyvault secret show --name image-registry-password --subscription thejameshome --vault-name cloud-operations-vault --query value --output tsv)
 
 cd ~
 
-kubectl config use-context weatherwatch-api
+kubectl config use-context $cluster_name
 
-kubectl delete secret weatherwatch-api-secret --ignore-not-found
+kubectl delete secret $registry --ignore-not-found
 
-kubectl create secret docker-registry weatherwatch-api-secret \
+kubectl create secret docker-registry $registry \
 	--docker-server=$image_registry_url \
 	--docker-username=$image_registry_username \
 	--docker-password=$image_registry_password
 
-cat <<EOF | tee $data-deployment.yaml
+cat <<EOF | tee ~/tmp/$data-deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -64,17 +67,24 @@ spec:
   type: LoadBalancer
 EOF
 
-kubectl delete -f $data-deployment.yaml --ignore-not-found
+kubectl delete -f ~/tmp/$data-deployment.yaml -n data --ignore-not-found
 
-kubectl apply -f $data-deployment.yaml
+kubectl apply -f ~/tmp/$data-deployment.yaml -n data
 
-rm $data-deployment.yaml
+rm ~/tmp/$data-deployment.yaml
 
-sleep 20
+echo
+ctr=20
+while [ $ctr -gt 0 ]
+do
+echo "Waiting ${ctr} seconds for service..."
+sleep 5 # give 15 minutes for all clusters to be created
+ctr=`expr $ctr - 5`
+done
 
 # dns
 hosted_zone_id=$(aws route53 list-hosted-zones --query HostedZones[2].Id --output text | awk -F '/' '{print $3}')
-ingress=$(kubectl get svc $data -o json | jq -r .status.loadBalancer.ingress[].ip)
+ingress=$(kubectl get svc $data -n data -o json | jq -r .status.loadBalancer.ingress[].ip)
 
 ipaddress=$ingress
 

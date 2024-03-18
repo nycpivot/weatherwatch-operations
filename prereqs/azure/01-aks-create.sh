@@ -1,7 +1,7 @@
 #!/bin/bash
 
 resource_group=weatherwatch
-cluster_name=weatherwatch-api
+cluster_name=weatherwatch-app
 aks_region_code=eastus
 
 # create resource group
@@ -13,3 +13,6 @@ az aks create --name ${cluster_name} --resource-group ${resource_group} \
 	        --enable-managed-identity --enable-addons monitoring --enable-msi-auth-for-monitoring --generate-ssh-keys 
 
 az aks get-credentials --name ${cluster_name} --resource-group ${resource_group}
+
+kubectl create namespace api
+kubectl create namespace data

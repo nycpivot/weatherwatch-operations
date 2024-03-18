@@ -15,9 +15,9 @@ cd ~
 
 kubectl config use-context $cluster_name
 
-kubectl delete secret $registry --ignore-not-found
+kubectl delete secret $registry -n data --ignore-not-found
 
-kubectl create secret docker-registry $registry \
+kubectl create secret docker-registry -n data $registry \
 	--docker-server=$image_registry_url \
 	--docker-username=$image_registry_username \
 	--docker-password=$image_registry_password

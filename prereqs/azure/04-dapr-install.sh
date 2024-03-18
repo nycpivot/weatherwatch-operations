@@ -31,7 +31,7 @@ metadata:
   uid: 407e27f8-35ca-4a6e-b077-de775ccb0eb2
 spec:
   ports:
-  - port: 8080
+  - port: 80
     protocol: TCP
     targetPort: 8080
   selector:

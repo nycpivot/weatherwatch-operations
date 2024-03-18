@@ -28,13 +28,6 @@ metadata:
   resourceVersion: "18095"
   uid: da493b0c-448a-4b4a-aa2e-636e515bc835
 spec:
-  clusterIP: 10.100.92.96
-  clusterIPs:
-  - 10.100.92.96
-  internalTrafficPolicy: Cluster
-  ipFamilies:
-  - IPv4
-  ipFamilyPolicy: SingleStack
   ports:
   - port: 80
     protocol: TCP

@@ -4,7 +4,7 @@ resource_group=weatherwatch
 asb_namespace=weatherwatch
 cluster_name=weatherwatch-api
 
-storage_account=$(cat ~/weatherwatch-dapr-ops/az-storage-account.txt)
+storage_account=$(cat ~/tmp/az-storage-account.txt)
 
 az servicebus namespace delete --namespace $asb_namespace --resource-group $resource_group
 az storage account delete --name $storage_account --resource-group $resource_group

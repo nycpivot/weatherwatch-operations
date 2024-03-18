@@ -17,7 +17,7 @@ metadata:
   annotations:
     meta.helm.sh/release-name: dapr-dashboard
     meta.helm.sh/release-namespace: dapr-system
-  creationTimestamp: "2024-03-14T19:24:56Z"
+  creationTimestamp: "2024-03-17T23:34:06Z"
   labels:
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: dapr-dashboard
@@ -25,18 +25,11 @@ metadata:
     app.kubernetes.io/version: 0.14.0
   name: dapr-dashboard
   namespace: dapr-system
-  resourceVersion: "18095"
-  uid: da493b0c-448a-4b4a-aa2e-636e515bc835
+  resourceVersion: "2863"
+  uid: 407e27f8-35ca-4a6e-b077-de775ccb0eb2
 spec:
-  clusterIP: 10.100.92.96
-  clusterIPs:
-  - 10.100.92.96
-  internalTrafficPolicy: Cluster
-  ipFamilies:
-  - IPv4
-  ipFamilyPolicy: SingleStack
   ports:
-  - port: 80
+  - port: 8080
     protocol: TCP
     targetPort: 8080
   selector:

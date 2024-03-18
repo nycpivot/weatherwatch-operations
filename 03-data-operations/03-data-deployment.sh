@@ -6,6 +6,7 @@ dns=data.weatherwatch.live
 cluster_name=weatherwatch-app
 app_name=weatherwatch-data
 registry=weatherwatch-registry-secret
+ns=data
 
 image_registry_url=$(az keyvault secret show --name image-registry-url --subscription thejameshome --vault-name cloud-operations-vault --query value --output tsv)
 image_registry_username=$(az keyvault secret show --name image-registry-username --subscription thejameshome --vault-name cloud-operations-vault --query value --output tsv)
@@ -15,9 +16,9 @@ cd ~
 
 kubectl config use-context $cluster_name
 
-kubectl delete secret $registry -n data --ignore-not-found
+kubectl delete secret $registry -n $ns --ignore-not-found
 
-kubectl create secret docker-registry -n data $registry \
+kubectl create secret docker-registry -n $ns $registry \
 	--docker-server=$image_registry_url \
 	--docker-username=$image_registry_username \
 	--docker-password=$image_registry_password
@@ -27,7 +28,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: $data-deployment
-  namespace: data
+  namespace: $ns
   labels:
     app: $data
 spec:
@@ -58,6 +59,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: $data
+  namespace: $ns
 spec:
   selector:
     app: $data
@@ -85,7 +87,7 @@ done
 
 # dns
 hosted_zone_id=$(aws route53 list-hosted-zones --query HostedZones[2].Id --output text | awk -F '/' '{print $3}')
-ingress=$(kubectl get svc $data -n data -o json | jq -r .status.loadBalancer.ingress[].ip)
+ingress=$(kubectl get svc $data -n $ns -o json | jq -r .status.loadBalancer.ingress[].ip)
 
 ipaddress=$ingress
 
@@ -119,8 +121,8 @@ aws route53 change-resource-record-sets \
 rm ~/tmp/$change_batch_filename.json
 echo
 
-kubectl get pods -n $data
+kubectl get pods -n $ns
 echo
 
-kubectl get services -n $data
+kubectl get services -n $ns
 echo

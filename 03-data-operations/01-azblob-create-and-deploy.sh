@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cluster_name=weatherwatch-data
+cluster_name=weatherwatch-api
 container_name=extreme-temps
 resource_group=weatherwatch
 

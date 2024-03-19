@@ -14,5 +14,7 @@ az aks create --name ${cluster_name} --resource-group ${resource_group} \
 
 az aks get-credentials --name ${cluster_name} --resource-group ${resource_group}
 
+helm install external-secrets external-secrets/external-secrets -n external-secrets --create-namespace
+
 kubectl create namespace api
 kubectl create namespace data

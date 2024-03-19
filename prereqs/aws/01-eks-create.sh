@@ -47,3 +47,5 @@ aws eks wait nodegroup-active \
 aws eks update-kubeconfig --name ${weatherwatch_web_cluster} --region ${AWS_REGION_CODE}
 
 kubectl config rename-context ${cluster_arn}/${weatherwatch_web_cluster} ${weatherwatch_web_cluster}
+
+helm install external-secrets external-secrets/external-secrets -n external-secrets --create-namespace

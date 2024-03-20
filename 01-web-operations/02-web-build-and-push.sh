@@ -8,11 +8,9 @@ image_registry_password=$(az keyvault secret show --name image-registry-password
 
 cd ~
 
-rm -rf $web
-
 git clone https://github.com/nycpivot/$web -b dapr
 
-cd $web
+cd ~/$web
 
 docker build -t weatherwatch.azurecr.io/$web .
 
@@ -20,4 +18,4 @@ docker login $image_registry_url -u $image_registry_username -p $image_registry_
 
 docker push $image_registry_url/$web
 
-rm -rf $web
+rm -rf ~/$web

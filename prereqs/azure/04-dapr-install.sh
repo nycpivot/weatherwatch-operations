@@ -50,7 +50,7 @@ ctr=`expr $ctr - 5`
 done
 
 # dns
-hosted_zone_id=$(aws route53 list-hosted-zones --query HostedZones[2].Id --output text | awk -F '/' '{print $3}')
+hosted_zone_id=Z0606413QB4B75CQOQ5P # $(aws route53 list-hosted-zones --query HostedZones[2].Id --output text | awk -F '/' '{print $3}')
 ipaddress=$(kubectl get svc $svc -n $dapr_ns -o json | jq -r .status.loadBalancer.ingress[].ip)
 
 change_batch_filename=change-batch-$RANDOM

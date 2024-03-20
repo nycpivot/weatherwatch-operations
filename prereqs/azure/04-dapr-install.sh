@@ -49,7 +49,12 @@ EOF
 # ctr=`expr $ctr - 5`
 # done
 
+echo
+echo "Waiting for service IP address..."
+echo
+
 kubectl get service $svc -n $dapr_ns -w
+echo
 
 # dns
 hosted_zone_id=Z0606413QB4B75CQOQ5P # $(aws route53 list-hosted-zones --query HostedZones[2].Id --output text | awk -F '/' '{print $3}')

@@ -85,13 +85,11 @@ kubectl apply -f ~/tmp/$api-deployment.yaml
 rm ~/tmp/$api-deployment.yaml
 
 echo
-ctr=20
-while [ $ctr -gt 0 ]
-do
-echo "Waiting ${ctr} seconds for service..."
-sleep 5 # give 15 minutes for all clusters to be created
-ctr=`expr $ctr - 5`
-done
+echo "Waiting for service IP address..."
+echo
+
+kubectl get service $api -n $ns -w
+echo
 
 # dns
 hosted_zone_id=Z0606413QB4B75CQOQ5P # $(aws route53 list-hosted-zones --query HostedZones[2].Id --output text | awk -F '/' '{print $3}')

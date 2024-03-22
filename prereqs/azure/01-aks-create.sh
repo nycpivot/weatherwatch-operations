@@ -29,7 +29,7 @@ kubectl create namespace $ns_data
 # vaultUrl=$(az keyvault show --name $vault_name | jq -r .properties.vaultUri)
 # appId=$(az ad app create --display-name "external-secret-operator" --query appId | tr -d \")
 # sp=$(az ad sp create --id $appId --query id | tr -d \")
-# p=$(az ad app credential reset - id $appId - query password | tr -d \")
+# p=$(az ad app credential reset --id $appId --query password | tr -d \")
 
 # # save these off for deleting later in reset script
 # echo $appId > ~/tmp/eso-appid.txt
@@ -67,13 +67,18 @@ kubectl create namespace $ns_data
 # spec:
 #   refreshInterval: "1h"
 #   secretStoreRef:
-#     kind: ClusterSecretStore
+#     kind: SecretStore
 #     name: az-keyvault
 #   target:
-#     name: weather-bit-api-key
+#     name: weather-bit-api
 #     creationPolicy: Owner
 #   data:
-#     secretKey: weather-bit-api-key
+#   - secretKey: url
 #     remoteRef:
-#       key: weather-bit-api-key
+#       key: cloud-operations-vault
+#       property: weather-bit-api-url
+#   - secretKey: key
+#     remoteRef:
+#       key: cloud-operations-vault
+#       property: weather-bit-api-key
 # EOF

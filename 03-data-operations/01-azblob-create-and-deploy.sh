@@ -8,6 +8,7 @@ ns=data
 storage_account=$(cat ~/tmp/az-storage-account.txt)
 account_key=$(cat ~/tmp/az-storage-account-key.txt)
 
+
 kubectl config use-context $cluster_name
 
 cat <<EOF | kubectl apply -n $ns -f -
@@ -27,4 +28,4 @@ spec:
     value: "$container_name"
 EOF
 
-kubectl get components
+kubectl get components -n $ns

@@ -23,6 +23,7 @@ kubectl create secret docker-registry -n $ns $registry \
 	--docker-username=$image_registry_username \
 	--docker-password=$image_registry_password
 
+
 cat <<EOF | tee ~/tmp/$data-deployment.yaml
 apiVersion: apps/v1
 kind: Deployment

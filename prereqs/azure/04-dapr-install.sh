@@ -10,6 +10,7 @@ kubectl config use-context $cluster_name
 
 dapr init -k --dev
 
+# OPTIONAL
 kubectl delete service dapr-dashboard -n dapr-system
 
 cat <<EOF | kubectl apply -n dapr-system -f -
